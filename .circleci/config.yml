@@ -17,14 +17,7 @@ jobs:
             curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
       - run:
           command: |
-            echo Running lint -> test -> coverage -> build
-            make build
-      - store_artifacts:
-          path: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/bin
-          destination: binary
-      - run:
-          command: |
-            echo Running release
-            ./scripts/release.sh $CIRCLE_BUILD_NUM
+            echo Running lint -> test -> coverage -> build -> publish
+            make publish $CIRCLE_BUILD_NUM
 
             

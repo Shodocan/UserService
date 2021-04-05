@@ -1,0 +1,13 @@
+FROM golang:1.16
+
+WORKDIR /api
+ENV MONGODB_HOST test-mongo
+ENV REDISDB_ACTIVE true
+ENV REDISDB_HOST test-redis
+ENV REDISDB_PORT 6379
+ENV REDISDB_PASSWORD ""
+ENV REDISDB_DATABASE 1
+ENV GO111MODULE on
+
+COPY . .
+ENTRYPOINT [ "go","test", "./internal/...", "-timeout=2m", "-parallel=4",  "-covermode=atomic", "-coverprofile", "coverage.out" ]

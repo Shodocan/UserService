@@ -38,6 +38,7 @@ wire:
 	@wire ./...
 
 generate: wire
+	go install github.com/golang/mock/mockgen@v1.5.0
 	@go generate ./...
 
 regenerate: clean-mock generate

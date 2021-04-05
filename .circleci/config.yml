@@ -1,0 +1,40 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.16
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    context: user-service
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: go mod vendor
+      - run:
+          command: |
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
+      - run:
+          command: |
+            docker login -u ${DOCKER_HUB_LOGIN} -p ${DOCKER_HUB_PASS}
+            echo Running lint -> test -> coverage -> build -> publish
+            export REDISDB_DEFAULT_TIMEOUT=1m
+            export MONGODB_DEFAULT_TIMEOUT=1m
+            make publish version=${CIRCLE_BUILD_NUM}
+  deploy:
+    docker:
+      - image: google/cloud-sdk:latest
+    context: user-service
+    steps:
+      - run:
+          command: |
+            gcloud auth activate-service-account --key-file="$PROD_GCP_SERVICE_ACCOUNT"
+            gcloud run deploy user-service --project $PROD_GCP_PROJECT_ID \
+              --image walissoncasonatto/user-service:${CIRCLE_BUILD_NUM} \
+              --region us-central1 --platform managed --allow-unauthenticated \
+              --set-env-vars PROJECT_ID=$PROD_GCP_PROJECT_ID,SECRET=$SECRET,SECRET_VER=$SECRET_VER \
+              --memory 128M \
+              --cpu 1 \
+              --concurrency 250 \
+              --max-instances 1

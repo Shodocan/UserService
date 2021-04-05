@@ -24,4 +24,4 @@ COPY --from=build /out/user-service /
 
 COPY entrypoint.sh /
 RUN chmod +x entrypoint.sh
-ENTRYPOINT ./entrypoint.sh
+ENTRYPOINT ./entrypoint.sh user-service

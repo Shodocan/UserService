@@ -56,8 +56,8 @@ services:
     #   REDISDB_PORT: 6379
     #   REDISDB_PASSWORD: ""
     #   REDISDB_DATABASE: 1
-    entrypoint:
-      - /user-service
+    # entrypoint:
+    #   - /user-service
 
 volumes:
   db-data:

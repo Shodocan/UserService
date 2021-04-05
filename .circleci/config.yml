@@ -24,8 +24,8 @@ jobs:
             make publish version=${CIRCLE_BUILD_NUM}
 
             echo $PROD_GCP_SERVICE_ACCOUNT_CONTENT | docker login -u _json_key --password-stdin https://gcr.io
-            docker tag walissoncasonatto/user-service:${CIRCLE_BUILD_NUM}  gcr.io/$PROD_GCP_PROJECT_ID/user0service:$CIRCLE_BUILD_NUM
-            docker push gcr.io/$PROD_GCP_PROJECT_ID/user0service:$CIRCLE_BUILD_NUM
+            docker tag walissoncasonatto/user-service:${CIRCLE_BUILD_NUM}  gcr.io/$PROD_GCP_PROJECT_ID/user-service:pipeline.id
+            docker push gcr.io/$PROD_GCP_PROJECT_ID/user-service:pipeline.id
 
   deploy:
     docker:
@@ -37,7 +37,7 @@ jobs:
             echo  ${PROD_GCP_SERVICE_ACCOUNT_CONTENT} > key.json
             gcloud auth activate-service-account --key-file=key.json
             gcloud run deploy user-service --project $PROD_GCP_PROJECT_ID \
-              --image gcr.io/$PROD_GCP_PROJECT_ID/user0service:$CIRCLE_BUILD_NUM \
+              --image gcr.io/$PROD_GCP_PROJECT_ID/user-service:pipeline.id \
               --region us-central1 --platform managed --allow-unauthenticated \
               --set-env-vars PROJECT_ID=$PROD_GCP_PROJECT_ID,SECRET=$SECRET,SECRET_VER=$SECRET_VER \
               --memory 128M \

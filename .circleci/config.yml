@@ -29,7 +29,8 @@ jobs:
     steps:
       - run:
           command: |
-            gcloud auth activate-service-account --key-file="$PROD_GCP_SERVICE_ACCOUNT"
+            echo  ${PROD_GCP_SERVICE_ACCOUNT_CONTENT} > key.json
+            gcloud auth activate-service-account --key-file=key.json
             gcloud run deploy user-service --project $PROD_GCP_PROJECT_ID \
               --image walissoncasonatto/user-service:${CIRCLE_BUILD_NUM} \
               --region us-central1 --platform managed --allow-unauthenticated \
@@ -38,3 +39,4 @@ jobs:
               --cpu 1 \
               --concurrency 250 \
               --max-instances 1
+            rm -rf key.json

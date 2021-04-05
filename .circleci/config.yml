@@ -7,14 +7,14 @@ jobs:
     docker:
       - image: circleci/golang:1.16
     working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
-    context: inventory-api
+    context: user-service
     steps:
       - checkout
       - setup_remote_docker
       - run: go mod vendor
       - run:
           command: |
-            make install-lint
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
       - run:
           command: |
             echo Running lint -> test -> coverage -> build

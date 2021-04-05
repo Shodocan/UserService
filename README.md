@@ -18,7 +18,7 @@ make build-run
 make coverreport
 ```
 
-## Default bearer token for developmen
+## Default bearer token for development
 
 e81384e6-2b68-4d40-b19e-dd585132baa9
 

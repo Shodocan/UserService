@@ -34,6 +34,7 @@ clean-mock:
 	find internal -iname '*_mock.go' -exec rm {} \;
 
 wire:
+	go get github.com/google/wire/cmd/wire
 	@wire ./...
 
 generate: wire
@@ -42,7 +43,7 @@ generate: wire
 regenerate: clean-mock generate
 
 swagger:
-	@go get -u github.com/swaggo/swag/cmd/swag
+	@go get github.com/swaggo/swag/cmd/swag
 	@go mod vendor
 	@swag init -d cmd/ --parseDependency --parseDepth 6
 

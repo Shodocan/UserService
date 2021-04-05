@@ -18,6 +18,8 @@ jobs:
       - run:
           command: |
             echo Running lint -> test -> coverage -> build
+            export REDISDB_DEFAULT_TIMEOUT=1m
+            export MONGODB_DEFAULT_TIMEOUT=1m
             make build
       - store_artifacts:
           path: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/bin
@@ -26,5 +28,3 @@ jobs:
           command: |
             echo Running release
             ./scripts/release.sh $CIRCLE_BUILD_NUM
-
-            

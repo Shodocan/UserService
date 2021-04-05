@@ -20,9 +20,9 @@ then
     export MONGODB_ADMINPASSWORD=example
     export MONGODB_DATABASE="user"
 
-    docker run -d --rm -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME="${MONGODB_ADMINUSERNAME}" -e MONGO_INITDB_ROOT_PASSWORD="${MONGODB_ADMINPASSWORD}" -e MONGO_INITDB_DATABASE="${MONGODB_DATABASE}" --name test-mongo --network=inventory mongo:4.4.4-bionic
+    docker run -d --rm -e MONGO_INITDB_ROOT_USERNAME="${MONGODB_ADMINUSERNAME}" -e MONGO_INITDB_ROOT_PASSWORD="${MONGODB_ADMINPASSWORD}" -e MONGO_INITDB_DATABASE="${MONGODB_DATABASE}" --name test-mongo --network=inventory mongo:4.4.4-bionic
 
-    docker run -d --rm -p 6379:6379 --name test-redis --network=inventory redislabs/rejson:1.0.7
+    docker run -d --rm --name test-redis --network=inventory redislabs/rejson:1.0.7
 
     mkdir -p .coverage
     docker build -f Dockerfile.test -t user-service-tests .

@@ -17,6 +17,7 @@ jobs:
             curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
       - run:
           command: |
+            docker login -u ${DOCKER_HUB_LOGIN} -p ${DOCKER_HUB_PASS}
             echo Running lint -> test -> coverage -> build -> publish
             export REDISDB_DEFAULT_TIMEOUT=1m
             export MONGODB_DEFAULT_TIMEOUT=1m

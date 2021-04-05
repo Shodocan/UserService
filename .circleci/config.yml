@@ -40,3 +40,11 @@ jobs:
               --concurrency 250 \
               --max-instances 1
             rm -rf key.json
+workflows:
+  version: 2
+  build-test-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build

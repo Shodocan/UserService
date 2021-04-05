@@ -1,0 +1,1159 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>mongo: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/Shodocan/UserService/internal/database/mongo/migration.go (0.0%)</option>
+				
+				<option value="file1">github.com/Shodocan/UserService/internal/database/mongo/mongo.go (87.5%)</option>
+				
+				<option value="file2">github.com/Shodocan/UserService/internal/database/mongoredis/mongoredis.go (87.0%)</option>
+				
+				<option value="file3">github.com/Shodocan/UserService/internal/database/redis/redis.go (78.1%)</option>
+				
+				<option value="file4">github.com/Shodocan/UserService/internal/domain/entity/user.go (100.0%)</option>
+				
+				<option value="file5">github.com/Shodocan/UserService/internal/domain/usecase/user.go (91.5%)</option>
+				
+				<option value="file6">github.com/Shodocan/UserService/internal/helpers/json.go (100.0%)</option>
+				
+				<option value="file7">github.com/Shodocan/UserService/internal/helpers/user-password.go (80.0%)</option>
+				
+				<option value="file8">github.com/Shodocan/UserService/internal/services/user-repository_mock.go (0.0%)</option>
+				
+				<option value="file9">github.com/Shodocan/UserService/internal/services/user-service.go (90.8%)</option>
+				
+				<option value="file10">github.com/Shodocan/UserService/internal/web/requests/user.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package mongo
+
+import (
+        "context"
+        "time"
+
+        "github.com/Shodocan/UserService/internal/configs"
+        "go.mongodb.org/mongo-driver/mongo"
+        "go.mongodb.org/mongo-driver/mongo/options"
+        "gopkg.in/mgo.v2/bson"
+)
+
+func Migrate(config *configs.EnvVarConfig) error <span class="cov0" title="0">{
+        dbconfig := config.GetMongoConnectionString()
+        client, err := mongo.NewClient(options.Client().ApplyURI(dbconfig), &amp;options.ClientOptions{Auth: &amp;options.Credential{
+                Username: config.MongoDBAdminUsername,
+                Password: config.MongodbAdminPassword,
+        }})
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+        defer cancel()
+
+        err = client.Connect(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">_, err = client.Database(config.MongoDBDatabase).Collection("users").Indexes().CreateOne(ctx, mongo.IndexModel{
+                Keys: bson.M{
+                        "email": 1, // index in ascending order
+                }, Options: options.Index().SetUnique(true),
+        })
+        return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package mongo
+
+import (
+        "context"
+        "log"
+        "time"
+
+        "github.com/Shodocan/UserService/internal/configs"
+        "github.com/Shodocan/UserService/internal/database"
+        "go.mongodb.org/mongo-driver/bson/primitive"
+        "go.mongodb.org/mongo-driver/mongo"
+        "go.mongodb.org/mongo-driver/mongo/options"
+        "go.mongodb.org/mongo-driver/mongo/readpref"
+        "gopkg.in/mgo.v2/bson"
+)
+
+type DB struct {
+        timeout time.Duration
+        config  *configs.EnvVarConfig
+        logger  *log.Logger
+        _client *mongo.Client
+}
+
+func NewDB(config *configs.EnvVarConfig, logger *log.Logger) (database.MongoDB, error) <span class="cov7" title="8">{
+        timeout, err := time.ParseDuration(config.MongoDBDefaultTimeout)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Printf("Invalid MongoDB timeout %s, using 10s", config.MongoDBDefaultTimeout)
+                timeout = 10 * time.Second
+        }</span>
+        <span class="cov7" title="8">db := &amp;DB{
+                timeout: timeout,
+                logger:  logger,
+                config:  config,
+        }
+
+        err = db.init()
+        return db, err</span>
+}
+
+func (db *DB) init() error <span class="cov7" title="8">{
+        var err error
+        config := db.config.GetMongoConnectionString()
+        db._client, err = mongo.NewClient(options.Client().ApplyURI(config), &amp;options.ClientOptions{Auth: &amp;options.Credential{
+                Username: db.config.MongoDBAdminUsername,
+                Password: db.config.MongodbAdminPassword,
+        }})
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov7" title="8">ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+        defer cancel()
+        db.logger.Printf("Conectado ao mongo %s %s", db.config.MongoDBHost, db.config.MongoDBDatabase)
+        return db._client.Connect(ctx)</span>
+}
+
+func (db *DB) Disconnect() error <span class="cov7" title="8">{
+        ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+        defer cancel()
+        return db._client.Disconnect(ctx)
+}</span>
+
+func (db *DB) Ping() error <span class="cov1" title="1">{
+        ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+        defer cancel()
+        return db._client.Ping(ctx, readpref.Primary())
+}</span>
+
+func (db DB) Create(namespace string, data interface{}) (string, error) <span class="cov10" title="16">{
+        collection := db._client.Database(db.config.MongoDBDatabase).Collection(namespace)
+
+        ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+        defer cancel()
+
+        res, err := collection.InsertOne(ctx, data)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov10" title="16">id := res.InsertedID.(primitive.ObjectID)
+
+        return id.Hex(), nil</span>
+}
+
+func (db DB) Find(namespace, idStr string, dst interface{}) error <span class="cov4" title="3">{
+        collection := db._client.Database(db.config.MongoDBDatabase).Collection(namespace)
+        ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+        defer cancel()
+
+        id, err := primitive.ObjectIDFromHex(idStr)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov4" title="3">err = collection.FindOne(ctx, bson.M{"_id": id}).Decode(dst)
+        return err</span>
+}
+
+func (db DB) Query(namespace string, filters, sort interface{}, offset, limit int, dst interface{}) error <span class="cov6" title="5">{
+        collection := db._client.Database(db.config.MongoDBDatabase).Collection(namespace)
+
+        ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+        defer cancel()
+
+        findOptions := options.Find()
+        findOptions.SetLimit(int64(limit))
+        findOptions.SetSkip(int64(offset))
+        findOptions.SetSort(sort)
+
+        cur, err := collection.Find(ctx, filters, findOptions)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov6" title="5">return cur.All(ctx, dst)</span>
+}
+
+func (db DB) Total(namespace string, filters interface{}) (int, error) <span class="cov4" title="3">{
+        collection := db._client.Database(db.config.MongoDBDatabase).Collection(namespace)
+
+        ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+        defer cancel()
+
+        total, err := collection.CountDocuments(ctx, filters)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov4" title="3">return int(total), nil</span>
+}
+
+func (db DB) Update(namespace, idStr string, data interface{}) error <span class="cov1" title="1">{
+        collection := db._client.Database(db.config.MongoDBDatabase).Collection(namespace)
+
+        ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+        defer cancel()
+
+        id, err := primitive.ObjectIDFromHex(idStr)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov1" title="1">_, err = collection.UpdateByID(ctx, id, bson.M{"$set": data})
+        return err</span>
+}
+
+func (db DB) Delete(namespace, idStr string) error <span class="cov10" title="16">{
+        collection := db._client.Database(db.config.MongoDBDatabase).Collection(namespace)
+        ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+        defer cancel()
+
+        id, err := primitive.ObjectIDFromHex(idStr)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov10" title="16">_, err = collection.DeleteOne(ctx, bson.M{"_id": id})
+        return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package mongoredis
+
+import (
+        "encoding/base64"
+        "encoding/json"
+        "fmt"
+        "log"
+
+        "github.com/Shodocan/UserService/internal/configs"
+        "github.com/Shodocan/UserService/internal/database"
+        "github.com/Shodocan/UserService/internal/database/mongo"
+        "github.com/Shodocan/UserService/internal/database/redis"
+)
+
+type DB struct {
+        mongo  database.MongoDB
+        redis  database.RedisDB
+        logger *log.Logger
+}
+
+func NewDB(config *configs.EnvVarConfig, logger *log.Logger) (database.MongoDB, error) <span class="cov8" title="16">{
+        mongodb, err := mongo.NewDB(config, logger)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="16">redisdb, err := redis.NewDB(config, logger)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Printf("Failed to connect redis :%v", err)
+        }</span>
+
+        <span class="cov8" title="16">return &amp;DB{mongo: mongodb, redis: redisdb, logger: logger}, nil</span>
+}
+
+func (db *DB) Disconnect() error <span class="cov8" title="16">{
+        err := db.mongo.Disconnect()
+        redisErr := db.redis.Disconnect()
+
+        if err != nil || redisErr != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("error disconecting redis: %v, mongo: %v", redisErr, err)
+        }</span>
+        <span class="cov8" title="16">return nil</span>
+}
+
+func (db *DB) Ping() error <span class="cov2" title="2">{
+        err := db.redis.Ping()
+        if err != nil </span><span class="cov1" title="1">{
+                db.logger.Printf("failed to ping redis %v", err)
+        }</span>
+        <span class="cov2" title="2">return db.mongo.Ping()</span>
+}
+
+func (db DB) Create(namespace string, data interface{}) (string, error) <span class="cov10" title="32">{
+        id, err := db.mongo.Create(namespace, data)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov10" title="32">return id, nil</span>
+}
+
+func (db DB) Find(namespace, idStr string, dst interface{}) error <span class="cov5" title="6">{
+        err := db.redis.Get(idStr, dst)
+        if err != nil </span><span class="cov5" title="6">{
+                err := db.mongo.Find(namespace, idStr, dst)
+                if err != nil </span><span class="cov2" title="2">{
+                        return err
+                }</span>
+                <span class="cov4" title="4">_, err = db.redis.Set(idStr, dst)
+                if err != nil </span><span class="cov2" title="2">{
+                        db.logger.Println("failed to cache on Redis")
+                }</span>
+        }
+        <span class="cov4" title="4">return nil</span>
+}
+
+func (db DB) Query(namespace string, filters, sort interface{}, offset, limit int, dst interface{}) error <span class="cov8" title="15">{
+        hash := db.QueryHash(namespace, filters, sort, offset, limit)
+
+        err := db.redis.Get(hash, dst)
+        if err != nil </span><span class="cov6" title="10">{
+                err = db.mongo.Query(namespace, filters, sort, offset, limit, dst)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov6" title="10">_, err = db.redis.Set(hash, dst)
+                if err != nil </span><span class="cov5" title="5">{
+                        db.logger.Println("failed to cache on Redis")
+                }</span>
+        }
+
+        <span class="cov8" title="15">return nil</span>
+}
+
+func (db DB) Total(namespace string, filters interface{}) (int, error) <span class="cov7" title="12">{
+        hash := db.QueryHash(namespace, filters, nil, -1, -1)
+
+        var total int
+        err := db.redis.Get(hash, &amp;total)
+        if err != nil </span><span class="cov6" title="9">{
+                total, err = db.mongo.Total(namespace, filters)
+                if err != nil </span><span class="cov0" title="0">{
+                        return total, err
+                }</span>
+                <span class="cov6" title="9">_, err = db.redis.Set(hash, total)
+                if err != nil </span><span class="cov5" title="6">{
+                        db.logger.Println("failed to cache on Redis")
+                }</span>
+        }
+
+        <span class="cov7" title="12">return total, nil</span>
+}
+
+func (db DB) Update(namespace, idStr string, data interface{}) error <span class="cov2" title="2">{
+        err := db.mongo.Update(namespace, idStr, data)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov2" title="2">err = db.redis.Delete(idStr)
+        if err != nil </span><span class="cov1" title="1">{
+                db.logger.Println("failed to cache on Redis")
+        }</span>
+        <span class="cov2" title="2">return nil</span>
+}
+
+func (db DB) Delete(namespace, idStr string) error <span class="cov10" title="32">{
+        err := db.mongo.Delete(namespace, idStr)
+        redisErr := db.redis.Delete(idStr)
+
+        if db.redis.Ping() != nil </span><span class="cov8" title="16">{
+                // if redis is unvaliable must ignore delete errors
+                redisErr = nil
+        }</span>
+
+        <span class="cov10" title="32">if err != nil || redisErr != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("error deleting redis: %v, mongo:%v", redisErr, err)
+        }</span>
+        <span class="cov10" title="32">return nil</span>
+}
+
+func (db DB) QueryHash(namespace string, filters, sort interface{}, offset, limit int) string <span class="cov9" title="27">{
+        q := Query{
+                Namespace: namespace,
+                Filters:   filters,
+                Sort:      sort,
+                Offset:    offset,
+                Limit:     limit,
+        }
+        jsonData, err := json.Marshal(q)
+        if err != nil </span><span class="cov0" title="0">{
+                db.logger.Println(err)
+        }</span>
+        <span class="cov9" title="27">return base64.RawStdEncoding.EncodeToString(jsonData)</span>
+}
+
+type Query struct {
+        Namespace string
+        Filters   interface{}
+        Sort      interface{}
+        Offset    int
+        Limit     int
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package redis
+
+import (
+        "encoding/json"
+        "fmt"
+        "log"
+        "strconv"
+        "time"
+
+        "github.com/KromDaniel/rejonson"
+        "github.com/Shodocan/UserService/internal/configs"
+        "github.com/Shodocan/UserService/internal/database"
+        "github.com/go-redis/redis"
+)
+
+type DB struct {
+        cache   time.Duration
+        timeout time.Duration
+        config  *configs.EnvVarConfig
+        logger  *log.Logger
+        _client *rejonson.Client
+}
+
+func NewDB(config *configs.EnvVarConfig, logger *log.Logger) (database.RedisDB, error) <span class="cov10" title="4">{
+        cache, err := time.ParseDuration(config.RedisDBCacheDuration)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Printf("Invalid Redis cache duration %s, using 30s", config.RedisDBCacheDuration)
+                cache = 30 * time.Second
+        }</span>
+        <span class="cov10" title="4">timeout, err := time.ParseDuration(config.RedisDBDefaultTimeout)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Printf("Invalid Redis cache duration %s, using 3s", config.RedisDBDefaultTimeout)
+                cache = 3 * time.Second
+        }</span>
+        <span class="cov10" title="4">db := &amp;DB{
+                cache:   cache,
+                logger:  logger,
+                config:  config,
+                timeout: timeout,
+        }
+
+        err = db.init()
+        return db, err</span>
+}
+
+func (db *DB) init() error <span class="cov10" title="4">{
+        var err error
+        dbs, err := strconv.Atoi(db.config.RedisDBDatabase)
+        if err != nil </span><span class="cov0" title="0">{
+                db.logger.Printf("Invalid Redis Database %s, using 1", db.config.RedisDBDatabase)
+                dbs = 1
+        }</span>
+        <span class="cov10" title="4">goRedisClient := redis.NewClient(&amp;redis.Options{
+                Addr:        fmt.Sprintf("%s:%s", db.config.RedisDBHost, db.config.RedisDBPort),
+                Password:    db.config.RedisDBPassword,
+                MaxRetries:  5,
+                DialTimeout: db.timeout,
+                DB:          dbs,
+        })
+        client := rejonson.ExtendClient(goRedisClient)
+        db._client = client
+        return err</span>
+}
+
+func (db *DB) Disconnect() error <span class="cov10" title="4">{
+        return db._client.Close()
+}</span>
+
+func (db *DB) Ping() error <span class="cov1" title="1">{
+        return db._client.Ping().Err()
+}</span>
+
+func (db DB) Set(idStr string, data interface{}) (string, error) <span class="cov5" title="2">{
+        js, _ := json.Marshal(data)
+        _, err := db._client.JsonSet(idStr, ".", string(js)).Result()
+        db._client.Expire(idStr, db.cache)
+        return idStr, err
+}</span>
+
+func (db DB) Get(idStr string, dst interface{}) error <span class="cov1" title="1">{
+        jsonString, err := db._client.JsonGet(idStr).Result()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov1" title="1">return json.Unmarshal([]byte(jsonString), dst)</span>
+}
+
+func (db DB) Delete(idStr string) error <span class="cov5" title="2">{
+        sts := db._client.Del(idStr)
+        return sts.Err()
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package entity
+
+import (
+        "net/http"
+
+        "github.com/Shodocan/UserService/internal/configs/engine"
+)
+
+type User struct {
+        ID       string `json:"id"`
+        Name     string `json:"name"`
+        Age      int    `json:"age"`
+        Email    string `json:"email"`
+        Password string `json:"password"`
+        Address  string `json:"address"`
+}
+
+func (u User) Validate(creation bool) error <span class="cov9" title="8">{
+        validationErrors := map[string]interface{}{}
+        if u.Email == "" </span><span class="cov3" title="2">{
+                validationErrors["email"] = "Email is required"
+        }</span>
+        <span class="cov9" title="8">if u.Name == "" </span><span class="cov3" title="2">{
+                validationErrors["name"] = "Name is required"
+        }</span>
+        <span class="cov9" title="8">if u.Password == "" &amp;&amp; creation </span><span class="cov1" title="1">{
+                validationErrors["password"] = "Password is required"
+        }</span>
+        <span class="cov9" title="8">if len(validationErrors) &gt; 0 </span><span class="cov7" title="5">{
+                return engine.NewGenericError(http.StatusBadRequest, "Invalid User").ExtraData(validationErrors)
+        }</span>
+        <span class="cov5" title="3">return nil</span>
+}
+
+type UserFied string
+
+const (
+        ID      UserFied = "_id"
+        Name    UserFied = "name"
+        Age     UserFied = "age"
+        Email   UserFied = "email"
+        Address UserFied = "address"
+)
+
+type UserFilter struct {
+        Field    UserFied `enums:"name,age,email,address"`
+        Value    interface{}
+        Operator FilterOperation `enums:"=,~"`
+}
+
+func (f UserFilter) Valid() bool <span class="cov10" title="9">{
+        switch f.Field </span>{
+        case Name, Age, Address, Email:<span class="cov8" title="7">
+                break</span>
+        default:<span class="cov3" title="2">
+                return false</span>
+        }
+
+        <span class="cov8" title="7">switch f.Operator </span>{
+        case Equal, Like:<span class="cov7" title="5">
+                break</span>
+        default:<span class="cov3" title="2">
+                return false</span>
+        }
+
+        <span class="cov7" title="5">return true</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package usecase
+
+import (
+        "log"
+
+        "github.com/Shodocan/UserService/internal/configs"
+        "github.com/Shodocan/UserService/internal/configs/engine"
+        "github.com/Shodocan/UserService/internal/domain/entity"
+        "github.com/Shodocan/UserService/internal/helpers"
+        "github.com/Shodocan/UserService/internal/services"
+)
+
+type UserCase struct {
+        config  *configs.EnvVarConfig
+        service services.UserService
+        log     *log.Logger
+}
+
+func NewUserCase(config *configs.EnvVarConfig,
+        service services.UserService,
+        log *log.Logger,
+) *UserCase <span class="cov10" title="14">{
+        return &amp;UserCase{config: config, service: service, log: log}
+}</span>
+
+func (cs UserCase) Search(filters []entity.UserFilter, sort []string, limit int, page int) ([]entity.User, engine.Pagination, error) <span class="cov3" title="2">{
+        usrs, paginate, err := cs.service.Query(filters, sort, page, limit)
+        if err != nil </span><span class="cov1" title="1">{
+                cs.log.Println(err)
+                return nil, engine.Pagination{Pages: 0, Total: 0, PageSize: 0}, engine.ErrInternalFailure()
+        }</span>
+
+        <span class="cov1" title="1">for i := range usrs </span><span class="cov3" title="2">{
+                usrs[i].Password = ""
+        }</span>
+
+        <span class="cov1" title="1">return usrs, paginate, nil</span>
+}
+
+func (cs UserCase) ValidatePassword(id, password string) error <span class="cov3" title="2">{
+        usr, err := cs.service.Find(id)
+        if err != nil </span><span class="cov0" title="0">{
+                cs.log.Println(err)
+                return engine.ErrInternalFailure()
+        }</span>
+
+        <span class="cov3" title="2">compareErr := helpers.ComparePasswordToHash(usr.Password, password)
+        if compareErr != nil </span><span class="cov1" title="1">{
+                return compareErr
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
+
+func (cs UserCase) Find(id string) (entity.User, error) <span class="cov3" title="2">{
+        usr, err := cs.service.Find(id)
+        if err != nil </span><span class="cov1" title="1">{
+                cs.log.Println(err)
+                return entity.User{}, engine.ErrInternalFailure()
+        }</span>
+
+        <span class="cov1" title="1">usr.Password = "" // must never return password to the user
+        return usr, nil</span>
+}
+
+func (cs UserCase) Create(user entity.User) (entity.User, error) <span class="cov3" title="2">{
+        passHash, hasErr := helpers.HashPassword(user.Password)
+        if hasErr != nil </span><span class="cov0" title="0">{
+                return entity.User{}, hasErr
+        }</span>
+
+        <span class="cov3" title="2">user.Password = passHash
+
+        usr, err := cs.service.Create(user)
+        if err != nil </span><span class="cov1" title="1">{
+                cs.log.Println(err)
+                return entity.User{}, engine.ErrInternalFailure()
+        }</span>
+
+        <span class="cov1" title="1">usr.Password = "" // must never return password to the user
+        return usr, nil</span>
+}
+
+func (cs UserCase) Update(id string, user entity.User) (entity.User, error) <span class="cov3" title="2">{
+        if user.Password != "" </span><span class="cov3" title="2">{
+                passHash, hasErr := helpers.HashPassword(user.Password)
+                if hasErr != nil </span><span class="cov0" title="0">{
+                        return entity.User{}, hasErr
+                }</span>
+
+                <span class="cov3" title="2">user.Password = passHash</span>
+        }
+        <span class="cov3" title="2">usr, err := cs.service.Update(id, user)
+        if err != nil </span><span class="cov1" title="1">{
+                cs.log.Println(err)
+                return entity.User{}, engine.ErrInternalFailure()
+        }</span>
+
+        <span class="cov1" title="1">usr.Password = "" // must never return password to the user
+        return usr, nil</span>
+}
+
+func (cs UserCase) PartialUpdate(id string, user entity.User) (entity.User, error) <span class="cov3" title="2">{
+        if user.Password != "" </span><span class="cov3" title="2">{
+                passHash, hasErr := helpers.HashPassword(user.Password)
+                if hasErr != nil </span><span class="cov0" title="0">{
+                        return entity.User{}, hasErr
+                }</span>
+
+                <span class="cov3" title="2">user.Password = passHash</span>
+        }
+        <span class="cov3" title="2">usr, err := cs.service.PartialUpdate(id, user)
+        if err != nil </span><span class="cov1" title="1">{
+                cs.log.Println(err)
+                return entity.User{}, engine.ErrInternalFailure()
+        }</span>
+
+        <span class="cov1" title="1">usr.Password = "" // must never return password to the user
+        return usr, nil</span>
+}
+
+func (cs UserCase) Delete(id string) error <span class="cov3" title="2">{
+        err := cs.service.Delete(id)
+        if err != nil </span><span class="cov1" title="1">{
+                cs.log.Println(err)
+                return engine.ErrInternalFailure()
+        }</span>
+        <span class="cov1" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package helpers
+
+import "encoding/json"
+
+func ToJSON(obj interface{}) string <span class="cov8" title="1">{
+        result, _ := json.Marshal(obj)
+        return string(result)
+}</span>
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package helpers
+
+import (
+        "errors"
+
+        "github.com/Shodocan/UserService/internal/configs/engine"
+        "golang.org/x/crypto/bcrypt"
+)
+
+func ComparePasswordToHash(hash, password string) *engine.Error <span class="cov10" title="12">{
+        err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+        if err != nil </span><span class="cov7" title="6">{
+                if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) </span><span class="cov7" title="6">{
+                        return engine.ErrInvalidPassword()
+                }</span>
+                <span class="cov0" title="0">return engine.ErrInternalFailure()</span>
+        }
+
+        <span class="cov7" title="6">return nil</span>
+}
+
+func HashPassword(password string) (string, *engine.Error) <span class="cov7" title="6">{
+        hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", engine.ErrInternalFailure()
+        }</span>
+
+        <span class="cov7" title="6">return string(hash), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// Code generated by MockGen. DO NOT EDIT.
+// Source: github.com/Shodocan/UserService/internal/services (interfaces: UserService)
+
+// Package services is a generated GoMock package.
+package services
+
+import (
+        reflect "reflect"
+
+        engine "github.com/Shodocan/UserService/internal/configs/engine"
+        entity "github.com/Shodocan/UserService/internal/domain/entity"
+        gomock "github.com/golang/mock/gomock"
+)
+
+// MockUserService is a mock of UserService interface.
+type MockUserService struct {
+        ctrl     *gomock.Controller
+        recorder *MockUserServiceMockRecorder
+}
+
+// MockUserServiceMockRecorder is the mock recorder for MockUserService.
+type MockUserServiceMockRecorder struct {
+        mock *MockUserService
+}
+
+// NewMockUserService creates a new mock instance.
+func NewMockUserService(ctrl *gomock.Controller) *MockUserService <span class="cov0" title="0">{
+        mock := &amp;MockUserService{ctrl: ctrl}
+        mock.recorder = &amp;MockUserServiceMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder <span class="cov0" title="0">{
+        return m.recorder
+}</span>
+
+// Create mocks base method.
+func (m *MockUserService) Create(arg0 entity.User) (entity.User, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Create", arg0)
+        ret0, _ := ret[0].(entity.User)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// Create indicates an expected call of Create.
+func (mr *MockUserServiceMockRecorder) Create(arg0 interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserService)(nil).Create), arg0)
+}</span>
+
+// Delete mocks base method.
+func (m *MockUserService) Delete(arg0 string) error <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Delete", arg0)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// Delete indicates an expected call of Delete.
+func (mr *MockUserServiceMockRecorder) Delete(arg0 interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUserService)(nil).Delete), arg0)
+}</span>
+
+// Find mocks base method.
+func (m *MockUserService) Find(arg0 string) (entity.User, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Find", arg0)
+        ret0, _ := ret[0].(entity.User)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// Find indicates an expected call of Find.
+func (mr *MockUserServiceMockRecorder) Find(arg0 interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockUserService)(nil).Find), arg0)
+}</span>
+
+// PartialUpdate mocks base method.
+func (m *MockUserService) PartialUpdate(arg0 string, arg1 entity.User) (entity.User, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "PartialUpdate", arg0, arg1)
+        ret0, _ := ret[0].(entity.User)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// PartialUpdate indicates an expected call of PartialUpdate.
+func (mr *MockUserServiceMockRecorder) PartialUpdate(arg0, arg1 interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PartialUpdate", reflect.TypeOf((*MockUserService)(nil).PartialUpdate), arg0, arg1)
+}</span>
+
+// Query mocks base method.
+func (m *MockUserService) Query(arg0 []entity.UserFilter, arg1 []string, arg2, arg3 int) ([]entity.User, engine.Pagination, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Query", arg0, arg1, arg2, arg3)
+        ret0, _ := ret[0].([]entity.User)
+        ret1, _ := ret[1].(engine.Pagination)
+        ret2, _ := ret[2].(error)
+        return ret0, ret1, ret2
+}</span>
+
+// Query indicates an expected call of Query.
+func (mr *MockUserServiceMockRecorder) Query(arg0, arg1, arg2, arg3 interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Query", reflect.TypeOf((*MockUserService)(nil).Query), arg0, arg1, arg2, arg3)
+}</span>
+
+// Update mocks base method.
+func (m *MockUserService) Update(arg0 string, arg1 entity.User) (entity.User, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Update", arg0, arg1)
+        ret0, _ := ret[0].(entity.User)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// Update indicates an expected call of Update.
+func (mr *MockUserServiceMockRecorder) Update(arg0, arg1 interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUserService)(nil).Update), arg0, arg1)
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package services
+
+import (
+        "strings"
+
+        "github.com/Shodocan/UserService/internal/configs"
+        "github.com/Shodocan/UserService/internal/configs/engine"
+        "github.com/Shodocan/UserService/internal/database"
+        "github.com/Shodocan/UserService/internal/domain/entity"
+        "go.mongodb.org/mongo-driver/bson/primitive"
+        "gopkg.in/mgo.v2/bson"
+)
+
+func NewUserServiceMongo(db database.MongoDB, config *configs.EnvVarConfig) UserService <span class="cov5" title="4">{
+        return &amp;UserServiceMongo{_db: db, config: config}
+}</span>
+
+type UserServiceMongo struct {
+        _db    database.MongoDB
+        config *configs.EnvVarConfig
+}
+
+func MapDBUser(user entity.User) *DBUser <span class="cov8" title="9">{
+        dbUser := &amp;DBUser{}
+        if user.ID != "" </span><span class="cov3" title="2">{
+                id, _ := primitive.ObjectIDFromHex(user.ID)
+                dbUser.ID = id
+        }</span>
+        <span class="cov8" title="9">dbUser.Address = user.Address
+        dbUser.Password = user.Password
+        dbUser.Age = user.Age
+        dbUser.Name = user.Name
+        dbUser.Email = user.Email
+        return dbUser</span>
+}
+
+func MapPartialUser(user entity.User) *DBUserPartial <span class="cov1" title="1">{
+        dbUser := &amp;DBUserPartial{}
+        if user.ID != "" </span><span class="cov1" title="1">{
+                id, _ := primitive.ObjectIDFromHex(user.ID)
+                dbUser.ID = id
+        }</span>
+        <span class="cov1" title="1">dbUser.Address = user.Address
+        dbUser.Password = user.Password
+        dbUser.Age = user.Age
+        dbUser.Name = user.Name
+        dbUser.Email = user.Email
+        return dbUser</span>
+}
+
+type DBUserPartial struct {
+        ID       primitive.ObjectID `bson:"_id,omitempty"`
+        Name     string             `json:"name" bson:"name,omitempty"`
+        Age      int                `json:"age" bson:"age,omitempty"`
+        Email    string             `json:"email" bson:"email,omitempty"`
+        Password string             `json:"password" bson:"password,omitempty"`
+        Address  string             `json:"address" bson:"address,omitempty"`
+}
+
+type DBUserList []DBUser
+
+type DBUser struct {
+        ID       primitive.ObjectID `bson:"_id,omitempty"`
+        Name     string             `json:"name" bson:"name"`
+        Age      int                `json:"age" bson:"age"`
+        Email    string             `json:"email" bson:"email"`
+        Password string             `json:"password" bson:"password,omitempty"`
+        Address  string             `json:"address" bson:"address"`
+}
+
+func (dbUser *DBUser) ToUser() entity.User <span class="cov10" title="16">{
+        return entity.User{
+                ID:       dbUser.ID.Hex(),
+                Name:     dbUser.Name,
+                Age:      dbUser.Age,
+                Email:    dbUser.Email,
+                Password: dbUser.Password,
+                Address:  dbUser.Address,
+        }
+}</span>
+
+func (list DBUserList) ToUserList() []entity.User <span class="cov5" title="4">{
+        result := []entity.User{}
+        for _, usr := range list </span><span class="cov6" title="6">{
+                result = append(result, usr.ToUser())
+        }</span>
+        <span class="cov5" title="4">return result</span>
+}
+
+func (repo UserServiceMongo) operationResolver(op entity.FilterOperation) string <span class="cov1" title="1">{
+        switch op </span>{
+        case entity.Equal:<span class="cov0" title="0">
+                return "$eq"</span>
+        default:<span class="cov1" title="1">
+                return "$regex"</span>
+        }
+}
+
+func (repo UserServiceMongo) Query(filters []entity.UserFilter, sortList []string, page, limit int) ([]entity.User, engine.Pagination, error) <span class="cov5" title="4">{
+        queryFilter := bson.M{}
+        for _, filter := range filters </span><span class="cov1" title="1">{
+                if filter.Valid() </span><span class="cov1" title="1">{
+                        queryFilter[string(filter.Field)] = bson.M{repo.operationResolver(filter.Operator): filter.Value}
+                }</span>
+        }
+
+        <span class="cov5" title="4">sort := primitive.D{}
+        for _, rule := range sortList </span><span class="cov7" title="8">{
+                if strings.Contains(rule, "-") </span><span class="cov1" title="1">{
+                        sort = append(sort, primitive.E{Key: strings.ReplaceAll(rule, "-", ""), Value: -1})
+                }</span> else<span class="cov7" title="7"> {
+                        sort = append(sort, primitive.E{Key: rule, Value: 1})
+                }</span>
+        }
+
+        <span class="cov5" title="4">total, err := repo._db.Total("users", queryFilter)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, engine.Pagination{}, err
+        }</span>
+
+        <span class="cov5" title="4">dbUsers := DBUserList{}
+        err = repo._db.Query("users", queryFilter, sort, (page*limit)-limit, limit, &amp;dbUsers)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, engine.Pagination{}, err
+        }</span>
+        <span class="cov5" title="4">return dbUsers.ToUserList(), engine.NewPagination(total, len(dbUsers), limit), err</span>
+}
+
+func (repo UserServiceMongo) Create(data entity.User) (entity.User, error) <span class="cov7" title="7">{
+        dbUser := MapDBUser(data)
+        id, err := repo._db.Create("users", dbUser)
+        if err != nil </span><span class="cov0" title="0">{
+                return entity.User{}, err
+        }</span>
+        <span class="cov7" title="7">return repo.Find(id)</span>
+}
+
+func (repo UserServiceMongo) Find(id string) (entity.User, error) <span class="cov8" title="10">{
+        mongoUser := &amp;DBUser{}
+        err := repo._db.Find("users", id, mongoUser)
+        return mongoUser.ToUser(), err
+}</span>
+
+func (repo UserServiceMongo) Update(id string, user entity.User) (entity.User, error) <span class="cov3" title="2">{
+        mongoUser := MapDBUser(user)
+        err := repo._db.Update("users", id, mongoUser)
+        if err != nil </span><span class="cov0" title="0">{
+                return entity.User{}, err
+        }</span>
+        <span class="cov3" title="2">return repo.Find(id)</span>
+}
+
+func (repo UserServiceMongo) PartialUpdate(id string, user entity.User) (entity.User, error) <span class="cov1" title="1">{
+        mongoUser := MapPartialUser(user)
+        err := repo._db.Update("users", id, mongoUser)
+        if err != nil </span><span class="cov0" title="0">{
+                return entity.User{}, err
+        }</span>
+        <span class="cov1" title="1">return repo.Find(id)</span>
+}
+
+func (repo UserServiceMongo) Delete(id string) error <span class="cov7" title="7">{
+        return repo._db.Delete("users", id)
+}</span>
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package requests
+
+import (
+        "fmt"
+        "net/http"
+
+        "github.com/Shodocan/UserService/internal/configs/engine"
+        "github.com/Shodocan/UserService/internal/domain/entity"
+)
+
+type ValidatePassword struct {
+        Password string `json:"password"`
+}
+
+type SearchUserRequest struct {
+        Filters []entity.UserFilter `json:"filters,omitempty"`
+        Sort    []string            `json:"sort,omitempty" example:"-name,age"`
+        Limit   int                 `json:"limit" example:"10"`
+        Page    int                 `json:"page" example:"1"`
+}
+
+func (u SearchUserRequest) Validate() error <span class="cov10" title="8">{
+        validationErrors := map[string]interface{}{}
+        if len(u.Filters) &gt; 0 </span><span class="cov7" title="4">{
+                for i, filter := range u.Filters </span><span class="cov7" title="4">{
+                        if !filter.Valid() </span><span class="cov4" title="2">{
+                                validationErrors[fmt.Sprintf("filter%d", i)] = fmt.Sprintf("Invalid Filter: %s %s %s", filter.Field, filter.Operator, filter.Value)
+                        }</span>
+                }
+        }
+        <span class="cov10" title="8">if u.Limit == 0 </span><span class="cov1" title="1">{
+                validationErrors["lmit"] = "limit is required"
+        }</span>
+        <span class="cov10" title="8">if u.Page == 0 </span><span class="cov4" title="2">{
+                validationErrors["page"] = "page is required"
+        }</span>
+        <span class="cov10" title="8">if len(validationErrors) &gt; 0 </span><span class="cov7" title="4">{
+                return engine.NewGenericError(http.StatusBadRequest, "Invalid Request").ExtraData(validationErrors)
+        }</span>
+        <span class="cov7" title="4">return nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

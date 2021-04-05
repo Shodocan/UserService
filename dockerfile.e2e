@@ -1,0 +1,6 @@
+FROM postman/newman:ubuntu
+
+ARG ENV_FILE
+
+COPY e2e /etc/newman
+ADD ${ENV_FILE} /etc/environment.json

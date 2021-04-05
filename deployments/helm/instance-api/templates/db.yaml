@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-db
+  template:
+    metadata:
+      labels:
+        app: inventory-db
+    spec:
+      containers:
+      - name: inventory-db
+        image: {{ .Values.image.repositoryDB }}
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: db-name
+        volumeMounts:
+        - mountPath: /data/db
+          name: db-volume
+      volumes:
+      - name: db-volume
+        persistentVolumeClaim:
+          claimName: inventory-api-db-disk
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-db-service
+spec:
+  selector:
+    app: inventory-db
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017

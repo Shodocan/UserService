@@ -1,0 +1,420 @@
+basePath: /api/v1
+definitions:
+  engine.Error:
+    properties:
+      code:
+        type: integer
+      extra:
+        additionalProperties: true
+        type: object
+      meta:
+        $ref: '#/definitions/engine.MetaData'
+    type: object
+  engine.MetaData:
+    properties:
+      message:
+        type: string
+      type:
+        enum:
+        - OK
+        - CREATED
+        - ERROR
+        type: string
+    type: object
+  engine.Pagination:
+    properties:
+      pageSize:
+        type: integer
+      pages:
+        type: integer
+      total:
+        type: integer
+    type: object
+  engine.PaginationResponse:
+    properties:
+      data:
+        type: object
+      meta:
+        $ref: '#/definitions/engine.MetaData'
+      pagination:
+        $ref: '#/definitions/engine.Pagination'
+    type: object
+  engine.Response:
+    properties:
+      data:
+        type: object
+      meta:
+        $ref: '#/definitions/engine.MetaData'
+    type: object
+  entity.User:
+    properties:
+      address:
+        type: string
+      age:
+        type: integer
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  entity.UserFilter:
+    properties:
+      field:
+        enum:
+        - name
+        - age
+        - email
+        - address
+        type: string
+      operator:
+        enum:
+        - =
+        - "~"
+        type: string
+      value:
+        type: object
+    type: object
+  requests.SearchUserRequest:
+    properties:
+      filters:
+        items:
+          $ref: '#/definitions/entity.UserFilter'
+        type: array
+      limit:
+        example: 10
+        type: integer
+      page:
+        example: 1
+        type: integer
+      sort:
+        example:
+        - -name
+        - age
+        items:
+          type: string
+        type: array
+    type: object
+  requests.ValidatePassword:
+    properties:
+      password:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: wdcasonatto@gmail.com
+    name: API Support
+  description: This is a sample swagger for User Service
+  termsOfService: http://swagger.io/terms/
+  title: User Service
+  version: "1.0"
+paths:
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: Create User Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/engine.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "401":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+      summary: Create User
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: update user attributes
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/engine.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "401":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+      summary: Delete User
+    get:
+      consumes:
+      - application/json
+      description: Find user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/engine.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "401":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+      summary: Find User
+    post:
+      consumes:
+      - application/json
+      description: update user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update User Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/engine.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "401":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+      summary: Update User
+    put:
+      consumes:
+      - application/json
+      description: update user attributes
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update User Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/engine.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "401":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+      summary: PartialUpdate User
+  /users/password/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Validate Password
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Validate Password Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ValidatePassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/engine.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "401":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+      summary: ValidatePassword
+  /users/search:
+    post:
+      consumes:
+      - application/json
+      description: Search users
+      parameters:
+      - description: Search Users Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.SearchUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/engine.PaginationResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.User'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "401":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/engine.Error'
+      summary: Search Users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

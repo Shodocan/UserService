@@ -1,0 +1,11 @@
+
+/bin
+
+/.idea/
+
+config.yml
+.env
+
+# Ignore the built binary
+auth-service
+vendor/

@@ -1,0 +1,39 @@
+{
+	"id": "ea16c0d9-3f65-4c69-9367-6eac75636060",
+	"name": "local",
+	"values": [
+		{
+			"key": "baseUrl",
+			"value": "http://172.17.0.1:8080/api/v1",
+			"enabled": true
+		},
+		{
+			"key": "token",
+			"value": "e81384e6-2b68-4d40-b19e-dd585132baa9",
+			"enabled": true
+		},
+		{
+			"key": "user-email",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "user-pass",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "created_user_id",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "user-pass-new",
+			"value": "",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2021-04-05T08:16:53.361Z",
+	"_postman_exported_using": "Postman/7.36.5"
+}

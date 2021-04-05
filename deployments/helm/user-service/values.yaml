@@ -1,0 +1,26 @@
+replicaCount: 4
+
+image:
+  repository: walissoncasonatto/user-service:latest
+  repositoryDB: mongo:4.4.4-bionic
+  repositoryRedis: redislabs/rejson:1.0.7
+
+service:
+  port: 80
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 64Mi
+  requests:
+    cpu: 50m
+    memory: 32Mi
+  
+configs:
+  mongoUsername: mongo
+  mongoPassword: root
+  mongoDatabase: user
+  port: 8080
+  redis: true
+  
+

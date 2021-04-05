@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-config
+data:
+  mongoUsername: "{{ .Values.configs.mongoUsername }}"
+  mongoPassword: "{{ .Values.configs.mongoPassword }}"
+  mongoDatabase: "{{ .Values.configs.mongoDatabase }}"
+  redis: "{{ .Values.configs.redis }}"

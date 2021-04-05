@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: inventory-db
+  name: user-db
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: inventory-db
+      app: user-db
   template:
     metadata:
       labels:
-        app: inventory-db
+        app: user-db
     spec:
       containers:
-      - name: inventory-db
+      - name: user-db
         image: {{ .Values.image.repositoryDB }}
         ports:
         - containerPort: 27017
@@ -21,23 +21,33 @@ spec:
         - name: MONGO_INITDB_DATABASE
           valueFrom:
             configMapKeyRef:
-              name: db-config
-              key: db-name
+              name: user-config
+              key: mongoDatabase
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: user-config
+              key: mongoPassword
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: user-config
+              key: mongoUsername
         volumeMounts:
         - mountPath: /data/db
           name: db-volume
       volumes:
       - name: db-volume
         persistentVolumeClaim:
-          claimName: inventory-api-db-disk
+          claimName: user-service-db-disk
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: inventory-db-service
+  name: user-db-service
 spec:
   selector:
-    app: inventory-db
+    app: user-db
   ports:
     - protocol: TCP
       port: 27017

@@ -1,9 +1,13 @@
 default: test
+version=local
 
 COVERAGE=80
 
 build: covercheck swagger
-	@docker build -t walissoncasonatto/user-service:local .
+	@docker build -t walissoncasonatto/user-service:${version} .
+
+publish: build
+	docker push walissoncasonatto/user-service:${version}
 	
 covercheck: cover
 	@sh -c "'$(CURDIR)/scripts/coverage.sh' ${COVERAGE}"

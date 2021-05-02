@@ -3,9 +3,6 @@ run:
     - integration
 
 linters-settings:
-  goimports:
-    # Separate internal packages from external
-    local-prefixes: git.curve.tools/go/walisson-casonatto-exercise-daily-summary-service
 
 linters:
   # Enable extra linters besides the default ones
